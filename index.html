@@ -1,28 +1,187 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>College Timetable Generator</title>
-    <link rel="stylesheet" href="style.css">
+<title>College Timetable Generator</title>
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+}
+
+button {
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 20px auto;
+}
+
+td, th {
+    border: 1px solid black;
+    padding: 10px;
+}
+</style>
 </head>
+
 <body>
 
 <h2>College Timetable Generator</h2>
 
-<button onclick="generateTimetable()">Generate Timetable</button>
-<button onclick="checkClashes()">Check Clashes</button>
+<button onclick="generate()">Generate Timetable</button>
+<button onclick="checkClash()">Check Clashes</button>
 
-<div id="alertBox"></div>
+<div id="tables"></div>
 
-<h3>AI&DS</h3>
-<div id="aids"></div>
+<script>
 
-<h3>AIML</h3>
-<div id="aiml"></div>
+let days = ["Mon","Tue","Wed","Thu","Fri"];
+let periods = ["P1","P2","P3","P4","P5"];
 
-<h3>CSE-DS</h3>
-<div id="cseds"></div>
+let subjects = {
+    AIML: ["AI","ML","Math","OS","DBMS"],
+    AIDS: ["AI","DS","Stats","Python","DBMS"],
+    CSEDS: ["DS","Algo","Math","OS","CN"]
+};
 
-<script src="script.js"></script>
+let faculty = {
+    AI: "Mam A",
+    ML: "Mam B",
+    Math: "Mam C",
+    OS: "Mam D",
+    DBMS: "Mam E",
+    DS: "Mam F",
+    Stats: "Mam G",
+    Python: "Mam H",
+    Algo: "Mam I",
+    CN: "Mam J"
+};
+
+let timetable = {};
+
+function generate(){
+
+    timetable = {AIML:{}, AIDS:{}, CSEDS:{}};
+    let teacherBusy = {};
+
+    for(let branch in timetable){
+
+        for(let d of days){
+
+            timetable[branch][d] = [];
+
+            let freeIndex = Math.floor(Math.random()*5);
+
+            for(let p=0; p<5; p++){
+
+                if(p === freeIndex){
+                    timetable[branch][d].push("FREE");
+                    continue;
+                }
+
+                let assigned = false;
+
+                for(let sub of subjects[branch]){
+
+                    let teacher = faculty[sub];
+                    let key = d + "_" + p;
+
+                    if(!teacherBusy[key]){
+                        teacherBusy[key] = [];
+                    }
+
+                    if(!teacherBusy[key].includes(teacher)){
+                        timetable[branch][d].push(sub + " ("+teacher+")");
+                        teacherBusy[key].push(teacher);
+                        assigned = true;
+                        break;
+                    }
+                }
+
+                if(!assigned){
+                    timetable[branch][d].push("FREE");
+                }
+            }
+        }
+    }
+
+    display();
+}
+
+function display(){
+
+    let html = "";
+
+    for(let branch in timetable){
+
+        html += "<h3>"+branch+"</h3>";
+        html += "<table>";
+        html += "<tr><th>Day</th>";
+
+        for(let p of periods){
+            html += "<th>"+p+"</th>";
+        }
+
+        html += "</tr>";
+
+        for(let d of days){
+            html += "<tr><td>"+d+"</td>";
+
+            for(let sub of timetable[branch][d]){
+                html += "<td>"+sub+"</td>";
+            }
+
+            html += "</tr>";
+        }
+
+        html += "</table>";
+    }
+
+    document.getElementById("tables").innerHTML = html;
+}
+
+function checkClash(){
+
+    let clash = false;
+
+    let map = {};
+
+    for(let branch in timetable){
+
+        for(let d of days){
+
+            for(let i=0; i<5; i++){
+
+                let entry = timetable[branch][d][i];
+
+                if(entry === "FREE") continue;
+
+                let teacher = entry.split("(")[1].replace(")","");
+                let key = d + "_" + i;
+
+                if(!map[key]){
+                    map[key] = [];
+                }
+
+                if(map[key].includes(teacher)){
+                    clash = true;
+                }
+
+                map[key].push(teacher);
+            }
+        }
+    }
+
+    if(clash){
+        alert("Clash detected! ❌");
+    }else{
+        alert("No clashes ✅");
+    }
+}
+
+</script>
 
 </body>
 </html>
